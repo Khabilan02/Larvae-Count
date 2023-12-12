@@ -14,10 +14,9 @@ totalseeds = 0
 oldlinecount = 0
 
 
+I = cv2.imread('C:\Users\User\Desktop\SDP-PROJECT\3.jpg')
 
-I = cv2.imread('6.jpg')
-
-I = cv2.resize(I, (500, 500))
+I = cv2.resize(I, (256, 256))
 cv2.imshow("Input Image",I)
 h,w = I.shape[:2]
 diff = (3,3,3)
