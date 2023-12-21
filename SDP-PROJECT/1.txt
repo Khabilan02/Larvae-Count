@@ -1,0 +1,47 @@
+import numpy as np
+import cv2
+import time
+import threading
+from BlynkLib import Blynk
+
+BLYNK_AUTH_TOKEN = 'RjVlf4rWlwJyJP7yk8e6UgNWInzVIQwz'
+blynk = Blynk(BLYNK_AUTH_TOKEN, server="blynk.cloud")
+
+def flood_fill(image):
+    h, w = image.shape[:2]
+    diff = (3, 3, 3)
+    mask = np.zeros((h + 2, w + 2), np.uint8)
+    cv2.floodFill(image, mask, (0, 0), (255, 255, 255), diff, diff)
+
+def image_processing():
+    cam = cv2.VideoCapture(0)
+    time.sleep(0.2)
+
+    while True:
+        ret, image = cam.read()
+        image = cv2.resize(image, (500, 500))
+
+        flood_fill(image)
+
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        _, thresholded_image = cv2.threshold(gray_image, 180, 255, cv2.THRESH_BINARY)
+
+        thresholded_image = cv2.medianBlur(thresholded_image, 19)
+
+        totalseeds = np.sum(thresholded_image < 128)
+
+        blynk.virtual_write(0, totalseeds)
+
+        cv2.imshow('Processed Image', thresholded_image)
+        cv2.waitKey(1)
+
+    cam.release()
+    cv2.destroyAllWindows()
+
+image_processing_thread = threading.Thread(target=image_processing)
+
+if __name__ == '__main__':
+    image_processing_thread.start()
+
+    while True:
+        blynk.run()
